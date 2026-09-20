@@ -69,9 +69,13 @@ export function App() {
 
   const updateChannel: UpdateChannel =
     state?.settings?.updateChannel ?? "stable";
-  // Only the Preferences window actively checks (poll + tray-menu entry); the
+  const automaticUpdateChecks = state?.settings?.automaticUpdateChecks ?? false;
+  // Only the Preferences window handles checks and tray-menu requests; the
   // tray view passively mirrors the backend's update-available broadcast.
-  const updater = useUpdater(updateChannel, { enabled: !isTrayView });
+  const updater = useUpdater(updateChannel, {
+    enabled: !isTrayView,
+    automaticChecks: automaticUpdateChecks,
+  });
 
   useEffect(() => {
     void getAppVersion().then(setAppVersion);
@@ -204,6 +208,7 @@ export function App() {
   );
   const settings: AppSettings = {
     hideFromDock: state?.settings?.hideFromDock ?? true,
+    automaticUpdateChecks: state?.settings?.automaticUpdateChecks ?? false,
     updateChannel: state?.settings?.updateChannel ?? "stable",
     trayScale: state?.settings?.trayScale ?? TRAY_MAX_SCALE,
     localInsights: state?.settings?.localInsights ?? true,
@@ -651,9 +656,15 @@ export function App() {
         }}
         updates={{
           channel: settings.updateChannel,
+          automaticChecks: settings.automaticUpdateChecks,
           state: updater.state,
           appVersion,
           onChannelChange: (channel) => void onUpdateChannelChange(channel),
+          onAutomaticChecksChange: (enabled) =>
+            void updateSettings({
+              ...settings,
+              automaticUpdateChecks: enabled,
+            }),
           onCheck: () => void updater.checkNow(),
           onInstall: () => void updater.install(),
           onDismiss: updater.dismiss,

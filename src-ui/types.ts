@@ -140,6 +140,7 @@ export type UpdateChannel = "stable" | "nightly";
 
 export interface AppSettings {
   hideFromDock: boolean;
+  automaticUpdateChecks: boolean;
   updateChannel: UpdateChannel;
   trayScale: number;
   localInsights: boolean;

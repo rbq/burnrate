@@ -17,7 +17,7 @@ use crate::{
     models::{AccountConfig, AppSettings, AwsCategoryConfig, AwsCostFilter, AwsGroupBy},
 };
 
-const LATEST_SCHEMA_VERSION: i64 = 2;
+const LATEST_SCHEMA_VERSION: i64 = 3;
 
 pub(crate) struct ConfigStore {
     conn: Mutex<Connection>,
@@ -231,6 +231,18 @@ fn run_migrations(conn: &mut Connection) -> Result<()> {
         )?;
         tx.commit()?;
     }
+    if version < 3 {
+        let tx = conn.transaction()?;
+        tx.execute_batch(
+            r#"
+            ALTER TABLE app_settings ADD COLUMN automatic_update_checks INTEGER NOT NULL DEFAULT 0
+                CHECK (automatic_update_checks IN (0, 1));
+
+            PRAGMA user_version = 3;
+            "#,
+        )?;
+        tx.commit()?;
+    }
     Ok(())
 }
 
@@ -275,25 +287,29 @@ fn load_config_from_conn(conn: &Connection) -> Result<AppConfig> {
 fn load_settings(conn: &Connection) -> Result<AppSettings> {
     let row = conn
         .query_row(
-            "SELECT hide_from_dock, update_channel, tray_scale, local_insights FROM app_settings WHERE id = 1",
+            "SELECT hide_from_dock, automatic_update_checks, update_channel, tray_scale, local_insights FROM app_settings WHERE id = 1",
             [],
             |row| {
                 Ok((
                     row.get::<_, i64>(0)?,
-                    row.get::<_, String>(1)?,
-                    row.get::<_, f64>(2)?,
-                    row.get::<_, i64>(3)?,
+                    row.get::<_, i64>(1)?,
+                    row.get::<_, String>(2)?,
+                    row.get::<_, f64>(3)?,
+                    row.get::<_, i64>(4)?,
                 ))
             },
         )
         .optional()?;
 
-    let Some((hide_from_dock, update_channel, tray_scale, local_insights)) = row else {
+    let Some((hide_from_dock, automatic_update_checks, update_channel, tray_scale, local_insights)) =
+        row
+    else {
         return Ok(AppSettings::default());
     };
 
     Ok(AppSettings {
         hide_from_dock: int_to_bool(hide_from_dock),
+        automatic_update_checks: int_to_bool(automatic_update_checks),
         update_channel: from_wire(&update_channel)?,
         tray_scale,
         local_insights: int_to_bool(local_insights),
@@ -453,11 +469,14 @@ fn save_config_tx(tx: &Transaction<'_>, config: &AppConfig) -> Result<()> {
 
     tx.execute(
         r#"
-        INSERT INTO app_settings (id, hide_from_dock, update_channel, tray_scale, local_insights)
-        VALUES (1, ?1, ?2, ?3, ?4)
+        INSERT INTO app_settings (
+            id, hide_from_dock, automatic_update_checks, update_channel, tray_scale, local_insights
+        )
+        VALUES (1, ?1, ?2, ?3, ?4, ?5)
         "#,
         params![
             bool_to_int(config.settings.hide_from_dock),
+            bool_to_int(config.settings.automatic_update_checks),
             to_wire(&config.settings.update_channel)?,
             config.settings.tray_scale,
             bool_to_int(config.settings.local_insights),
@@ -646,6 +665,7 @@ mod tests {
         let mut config = AppConfig {
             settings: AppSettings {
                 hide_from_dock: false,
+                automatic_update_checks: true,
                 update_channel: UpdateChannel::Nightly,
                 tray_scale: 0.75,
                 local_insights: false,
@@ -687,6 +707,7 @@ mod tests {
         let loaded = store.load_config().unwrap();
 
         assert!(!loaded.settings.hide_from_dock);
+        assert!(loaded.settings.automatic_update_checks);
         assert_eq!(loaded.settings.update_channel, UpdateChannel::Nightly);
         assert_eq!(loaded.settings.tray_scale, 0.75);
         assert!(!loaded.settings.local_insights);
@@ -819,6 +840,7 @@ mod tests {
 
         let loaded = store.load_config().unwrap();
         assert!(!loaded.settings.hide_from_dock);
+        assert!(!loaded.settings.automatic_update_checks);
         assert_eq!(loaded.settings.update_channel, UpdateChannel::Nightly);
         assert!(loaded.settings.local_insights, "new flag defaults on");
         assert_eq!(loaded.accounts.len(), 1);
@@ -831,7 +853,7 @@ mod tests {
         let version: i64 = conn
             .pragma_query_value(None, "user_version", |row| row.get(0))
             .unwrap();
-        assert_eq!(version, 2);
+        assert_eq!(version, 3);
     }
 
     #[test]
@@ -991,6 +1013,7 @@ mod tests {
         let second = AppConfig {
             settings: AppSettings {
                 hide_from_dock: true,
+                automatic_update_checks: false,
                 update_channel: UpdateChannel::Stable,
                 tray_scale: 1.0,
                 local_insights: true,

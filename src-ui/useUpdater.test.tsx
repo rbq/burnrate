@@ -58,7 +58,7 @@ test("background poll surfaces an available update via notification, not dialog"
   });
 
   const { result } = renderHook(() =>
-    useUpdater("stable", { forcePoll: true }),
+    useUpdater("stable", { automaticChecks: true, forcePoll: true }),
   );
 
   await waitFor(() => expect(result.current.state.available).toBe(true));
@@ -70,7 +70,7 @@ test("background poll surfaces an available update via notification, not dialog"
 
 test("an up-to-date background poll does not notify", async () => {
   const { result } = renderHook(() =>
-    useUpdater("stable", { forcePoll: true }),
+    useUpdater("stable", { automaticChecks: true, forcePoll: true }),
   );
 
   await waitFor(() => expect(result.current.state.hasChecked).toBe(true));
@@ -79,7 +79,7 @@ test("an up-to-date background poll does not notify", async () => {
 
 test("up-to-date check marks hasChecked without availability", async () => {
   const { result } = renderHook(() =>
-    useUpdater("nightly", { forcePoll: true }),
+    useUpdater("nightly", { automaticChecks: true, forcePoll: true }),
   );
 
   await waitFor(() => expect(result.current.state.hasChecked).toBe(true));
@@ -90,12 +90,22 @@ test("up-to-date check marks hasChecked without availability", async () => {
 test("stays hidden when the updater is unavailable", async () => {
   api.updaterAvailable.mockResolvedValue(false);
   const { result } = renderHook(() =>
-    useUpdater("stable", { forcePoll: true }),
+    useUpdater("stable", { automaticChecks: true, forcePoll: true }),
   );
 
   await waitFor(() => expect(api.updaterAvailable).toHaveBeenCalled());
   expect(result.current.state.available).toBe(false);
   expect(result.current.state.hasChecked).toBe(false);
+  expect(api.checkForUpdates).not.toHaveBeenCalled();
+});
+
+test("does not poll when automatic checks are disabled", async () => {
+  renderHook(() =>
+    useUpdater("stable", { automaticChecks: false, forcePoll: true }),
+  );
+
+  await waitFor(() => expect(checkHandler).toBeTypeOf("function"));
+  expect(api.updaterAvailable).not.toHaveBeenCalled();
   expect(api.checkForUpdates).not.toHaveBeenCalled();
 });
 
@@ -109,7 +119,7 @@ test("install streams progress and recovers from failure", async () => {
   api.installUpdate.mockRejectedValueOnce(new Error("disk full"));
 
   const { result } = renderHook(() =>
-    useUpdater("stable", { forcePoll: true }),
+    useUpdater("stable", { automaticChecks: true, forcePoll: true }),
   );
   await waitFor(() => expect(result.current.state.available).toBe(true));
 
@@ -132,7 +142,7 @@ test("dismiss hides the current version", async () => {
     date: null,
   });
   const { result } = renderHook(() =>
-    useUpdater("stable", { forcePoll: true }),
+    useUpdater("stable", { automaticChecks: true, forcePoll: true }),
   );
   await waitFor(() => expect(result.current.state.available).toBe(true));
 

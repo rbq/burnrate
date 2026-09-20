@@ -230,9 +230,10 @@ burnrate`).
   caption when several share the history) + `InsightsPanel.tsx` (Preferences
   section with the `localInsights` toggle, stat rows, daily bar timeline,
   model/project breakdowns), and the updater trio `useUpdater.ts` (channel-aware poll/check/
-  install state machine; only the Preferences window runs it `enabled` — the
-  tray view passively mirrors the `burnrate-update-available` broadcast, and
-  background-poll finds trigger the deduped system notification) +
+  install state machine; background polling is opt-in and disabled by default;
+  only the Preferences window runs it `enabled` — the tray view passively mirrors
+  the `burnrate-update-available` broadcast, and background-poll finds trigger
+  the deduped system notification) +
   `UpdateBanner.tsx` + `UpdateDialog.tsx` (the manual-check result dialog:
   checking / up-to-date / available-with-release-notes / error phases). The
   `TrayPanel` header has a settings gear that calls `open_preferences` and an

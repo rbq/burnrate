@@ -1008,6 +1008,10 @@ p {
   gap: 8px;
 }
 
+.updates-toggle {
+  justify-self: start;
+}
+
 .updates-channel {
   display: flex;
   align-items: center;

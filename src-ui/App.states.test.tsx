@@ -105,6 +105,7 @@ beforeEach(() => {
   api.saveAccount.mockResolvedValue([]);
   api.saveSettings.mockResolvedValue({
     hideFromDock: false,
+    automaticUpdateChecks: false,
     updateChannel: "stable",
     trayScale: 1,
     localInsights: true,
@@ -462,6 +463,7 @@ test("persists the chosen update channel", async () => {
   api.guardedFetch.mockResolvedValue(dashboardState());
   api.saveSettings.mockResolvedValue({
     hideFromDock: true,
+    automaticUpdateChecks: false,
     updateChannel: "nightly",
     trayScale: 1,
   });
@@ -480,10 +482,35 @@ test("persists the chosen update channel", async () => {
   );
 });
 
+test("opts into automatic update checks only when enabled", async () => {
+  api.guardedFetch.mockResolvedValue(dashboardState());
+  api.saveSettings.mockResolvedValue({
+    hideFromDock: false,
+    automaticUpdateChecks: true,
+    updateChannel: "stable",
+    trayScale: 1,
+    localInsights: true,
+  });
+
+  render(<App />);
+  await screen.findByRole("heading", { name: "Preferences" });
+
+  const toggle = screen.getByLabelText("Check for updates automatically");
+  expect(toggle).not.toBeChecked();
+  fireEvent.click(toggle);
+
+  await waitFor(() =>
+    expect(api.saveSettings).toHaveBeenCalledWith(
+      expect.objectContaining({ automaticUpdateChecks: true }),
+    ),
+  );
+});
+
 test("persists the tray content scale preference", async () => {
   api.guardedFetch.mockResolvedValue(dashboardState());
   api.saveSettings.mockResolvedValue({
     hideFromDock: false,
+    automaticUpdateChecks: false,
     updateChannel: "stable",
     trayScale: 0.75,
   });
@@ -1392,6 +1419,7 @@ function dashboardState(
     },
     settings: overrides.settings ?? {
       hideFromDock: false,
+      automaticUpdateChecks: false,
       updateChannel: "stable",
       trayScale: 1,
       localInsights: true,

@@ -37,9 +37,11 @@ import type { UpdaterState } from "./useUpdater";
 /** Update-channel + auto-updater wiring passed down from `App`. */
 export interface UpdatesPanelProps {
   channel: UpdateChannel;
+  automaticChecks: boolean;
   state: UpdaterState;
   appVersion: string;
   onChannelChange: (channel: UpdateChannel) => void;
+  onAutomaticChecksChange: (enabled: boolean) => void;
   onCheck: () => void;
   onInstall: () => void;
   onDismiss: () => void;
@@ -328,9 +330,11 @@ function TraySettings({
 
 function UpdatesSettings({
   channel,
+  automaticChecks,
   state,
   appVersion,
   onChannelChange,
+  onAutomaticChecksChange,
   onCheck,
   onInstall,
 }: UpdatesPanelProps) {
@@ -341,6 +345,14 @@ function UpdatesSettings({
     <section className="prefs-updates" aria-label="Updates">
       <SectionTitle title="Updates" detail={`v${appVersion}`} />
       <div className="updates-body">
+        <label className="toggle compact updates-toggle">
+          <input
+            type="checkbox"
+            checked={automaticChecks}
+            onChange={(event) => onAutomaticChecksChange(event.target.checked)}
+          />
+          Check for updates automatically
+        </label>
         <label className="updates-channel">
           <span>Release channel</span>
           <select
