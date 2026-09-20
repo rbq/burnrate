@@ -351,6 +351,7 @@ function dashboardState(): DashboardState {
     },
     settings: {
       hideFromDock: true,
+      automaticUpdateChecks: false,
       updateChannel: "stable",
       trayScale: 1,
       localInsights: true,

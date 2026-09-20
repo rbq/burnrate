@@ -103,6 +103,10 @@ pub(crate) enum UpdateChannel {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct AppSettings {
     pub hide_from_dock: bool,
+    /// Whether Burnrate checks for updates in the background. This is opt-in
+    /// so launching the app never contacts GitHub without user consent.
+    #[serde(default)]
+    pub automatic_update_checks: bool,
     /// Release channel for automatic updates. Defaults to `Stable`; older
     /// config files without this field deserialize to the default.
     #[serde(default)]
@@ -122,6 +126,7 @@ impl Default for AppSettings {
     fn default() -> Self {
         Self {
             hide_from_dock: true,
+            automatic_update_checks: false,
             update_channel: UpdateChannel::default(),
             tray_scale: default_tray_scale(),
             local_insights: true,
@@ -510,6 +515,13 @@ mod tests {
             serde_json::to_string(&UpdateChannel::Nightly).unwrap(),
             "\"nightly\""
         );
+    }
+
+    #[test]
+    fn automatic_update_checks_default_to_disabled() {
+        let settings: AppSettings = serde_json::from_str(r#"{"hideFromDock":false}"#).unwrap();
+        assert!(!settings.automatic_update_checks);
+        assert!(!AppSettings::default().automatic_update_checks);
     }
 
     #[test]

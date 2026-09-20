@@ -40,7 +40,7 @@ Desktop usage monitor for Claude Code, Codex, GitHub Copilot, Nous Portal, OpenR
 - AWS Cost Explorer month-to-date USD spend with optional monthly budgets and configurable service/tag/cost-category buckets such as Bedrock, EC2 compute, and S3.
 - Secrets in the OS keyring by default, with an explicit plaintext fallback.
 - Hides from the Dock by default; appears only while Preferences is open.
-- **Automatic updates (macOS)** with selectable **Stable** and **Nightly** channels: a dismissible banner and tray "Check for Updates…" entry offer a signature-verified one-click "Install & Restart." Choose the channel under Preferences → Updates.
+- **Opt-in automatic updates (macOS)** with selectable **Stable** and **Nightly** channels: automatic checks are disabled by default, while a dismissible banner and tray "Check for Updates…" entry offer a signature-verified one-click "Install & Restart." Configure checks and the channel under Preferences → Updates.
 
 ## Install
 

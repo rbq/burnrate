@@ -65,12 +65,14 @@ export interface UseUpdaterOptions {
    *  `burnrate-update-available` broadcast, so the Preferences window stays
    *  the single active checker. */
   enabled?: boolean;
+  /** Opt-in background checks. Manual checks remain available when false. */
+  automaticChecks?: boolean;
 }
 
 /**
- * Channel-aware updater state machine. Polls every 30 minutes (off in dev so
- * iteration doesn't ping GitHub), exposes a manual check wired to the tray's
- * "Check for Updates" entry, and tracks download progress for the banner.
+ * Channel-aware updater state machine. When opted in, polls every 30 minutes
+ * (off in dev so iteration doesn't ping GitHub), exposes a manual check wired
+ * to the tray's "Check for Updates" entry, and tracks download progress.
  *
  * Background-poll-found updates surface as a system notification (the backend
  * dedupes per version per session); manual checks open the result dialog
@@ -243,7 +245,7 @@ export function useUpdater(
   // re-checks when the channel changes so switching channels surfaces the
   // right feed immediately.
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !options.automaticChecks) return;
     if (import.meta.env.DEV && !options.forcePoll) return;
     void runCheck("auto");
     const id = window.setInterval(
@@ -251,7 +253,7 @@ export function useUpdater(
       CHECK_INTERVAL_MS,
     );
     return () => window.clearInterval(id);
-  }, [enabled, runCheck, channel, options.forcePoll]);
+  }, [enabled, runCheck, channel, options.automaticChecks, options.forcePoll]);
 
   return { state, checkNow, install, dismiss, closeDialog };
 }

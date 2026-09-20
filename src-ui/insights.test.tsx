@@ -228,6 +228,7 @@ test("TrayPanel renders local usage once per provider with a shared-history capt
     },
     settings: {
       hideFromDock: true,
+      automaticUpdateChecks: false,
       updateChannel: "stable",
       trayScale: 1,
       localInsights: true,
@@ -369,6 +370,7 @@ function trayPanel(
     },
     settings: {
       hideFromDock: true,
+      automaticUpdateChecks: false,
       updateChannel: "stable",
       trayScale: 1,
       localInsights: true,
@@ -504,6 +506,7 @@ test("tray footer counts disabled accounts and opens preferences", async () => {
     },
     settings: {
       hideFromDock: true,
+      automaticUpdateChecks: false,
       updateChannel: "stable",
       trayScale: 1,
       localInsights: true,
