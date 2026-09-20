@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   build:
+    if: github.repository == 'jamesbrink/burnrate'
     strategy:
       fail-fast: false
       matrix:
@@ -102,7 +103,7 @@ jobs:
   # has no tag to key the asset URLs on.
   publish-manifest:
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.repository == 'jamesbrink/burnrate' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
