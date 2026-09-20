@@ -19,6 +19,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.repository == 'jamesbrink/burnrate'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
@@ -38,6 +39,7 @@ jobs:
           path: website/.vitepress/dist
 
   deploy:
+    if: github.repository == 'jamesbrink/burnrate'
     needs: build
     runs-on: ubuntu-24.04
     environment:
