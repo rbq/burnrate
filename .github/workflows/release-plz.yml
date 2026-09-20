@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   release-plz:
+    if: github.repository == 'jamesbrink/burnrate'
     runs-on: ubuntu-latest
     steps:
       # Mint a GitHub App token so the release PR and version tag are authored
